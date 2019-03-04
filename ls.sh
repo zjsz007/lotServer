@@ -3,15 +3,26 @@
 # Modified by Aniverse
 # https://github.com/Aniverse/lotServer
 #
-# bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/ls.sh) -i
+# bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/ls.sh) i
 #
 # 2019.03.04
-# 0.1.3
+# 0.1.4
 
 black=$(tput setaf 0); red=$(tput setaf 1); green=$(tput setaf 2); yellow=$(tput setaf 3);
 blue=$(tput setaf 4); magenta=$(tput setaf 5); cyan=$(tput setaf 6); white=$(tput setaf 7); 
 bold=$(tput bold); normal=$(tput sgr0); on_red=$(tput setab 1); on_green=$(tput setab 2)
 CW="${bold}${white}${on_red} ERROR ${normal}${bold}"
+arch=$( uname -m )
+[ -f /etc/redhat-release ] && opsy=$(awk '{print ($1,$3~/^[0-9]/?$3:$4)}' /etc/redhat-release)
+[ -f /etc/lsb-release ] && opsy=$(awk -F'[="]+' '/DESCRIPTION/{print $2}' /etc/lsb-release)
+#[ -f /etc/os-release ] && opsy=$(awk -F'[="]+' '/DESCRIPTION/{print $2}' /etc/lsb-release)
+[ -f /etc/os-release ] && {
+Distro=$(awk -F'[= "]' '/PRETTY_NAME/{print $3}' /etc/os-release)
+[[ $Distro == Ubuntu ]] && osversion=$(grep Ubuntu /etc/issue | head -1 | grep -oE  "[0-9.]+")
+[[ $Distro == Debian ]] && osversion=$(cat /etc/debian_version)
+Codename=$(cat /etc/os-release | grep VERSION= | tr '[A-Z]' '[a-z]' | sed 's/\"\|(\|)\|[0-9.,]\|version\|lts//g' | awk '{print $2}')
+opsy="$(echo $Distro $osversion $Codename)"
+}
 
 [[ $EUID -ne 0 ]] && { echo "$CW This script must be run as root!${normal}" ; exit 1 ; }
 
@@ -40,7 +51,7 @@ MyKernel=$(wget --no-check-certificate -qO- "$URLKernel" |grep "$KNA/" |grep "/x
 [ -z "$MyKernel" ] && echo -e "$CW Kernel not be matched, you should change kernel manually and try again! \n\nView the link to get detaits: \n${green}$URLKernel ${normal}\n\n\n" && exit 1 ; }
 
 function Install() {
-pause
+[ -z $NoASK ] && pause
 Check
 lotServer
 Lic
@@ -48,13 +59,14 @@ update-rc.d -f lotServer remove >/dev/null 2>&1
 update-rc.d lotServer defaults >/dev/null 2>&1
 /etc/init.d/lotServer start
 clear
-echo -e "${bold}${white}$(tput setab 0)[Running Kernel]${normal}\nKernel               $KNK\n"
+echo -e "\n${bold}${white}$(tput setab 0)[Running Kernel]${normal}\nOS                   $opsy ($arch)
+Kernel               $KNK\n"
 /etc/init.d/lotServer status
 # [[ $(ps aux | grep appex | grep -v grep) ]] && echo -e "\n${bold}${green}LotServer is running ...${normal}\n" || echo -e "\n${bold}${red}LotServer is NOT running${normal}\n"
 echo ; exit 0 ; }
 
 function Uninstall() {
-pause
+[ -z $NoASK ] && pause
 chattr -R -i /appex >/dev/null 2>&1
 [ -d /etc/rc.d ] && rm -rf /etc/rc.d/init.d/serverSpeeder >/dev/null 2>&1
 [ -d /etc/rc.d ] && rm -rf /etc/rc.d/rc*.d/*serverSpeeder >/dev/null 2>&1
@@ -66,8 +78,8 @@ chattr -R -i /appex >/dev/null 2>&1
 [ -d /etc/init.d ] && rm -rf /etc/rc*.d/*lotServer >/dev/null 2>&1
 rm -rf /etc/lotServer.conf >/dev/null 2>&1
 rm -rf /etc/serverSpeeder.conf >/dev/null 2>&1
-[ -f /appex/bin/lotServer.sh ] && bash /appex/bin/lotServer.sh uninstall -f >/dev/null 2>&1
-[ -f /appex/bin/serverSpeeder.sh ] && bash /appex/bin/serverSpeeder.sh uninstall -f >/dev/null 2>&1
+[ -f /appex/bin/lotServer.sh ]     && { bash /appex/bin/lotServer.sh     stop >/dev/null 2>&1 ; bash /appex/bin/lotServer.sh uninstall -f     >/dev/null 2>&1 ; }
+[ -f /appex/bin/serverSpeeder.sh ] && { bash /appex/bin/serverSpeeder.sh stop >/dev/null 2>&1 ; bash /appex/bin/serverSpeeder.sh uninstall -f >/dev/null 2>&1 ; }
 rm -rf /appex >/dev/null 2>&1
 rm -rf /tmp/appex* >/dev/null 2>&1
 echo -e "\n${bold}lotServer has been removed!${normal} \n"
@@ -79,7 +91,7 @@ chmod +x lotCheck.sh
 SERIAL_NUM=$(./lotCheck.sh | grep Serial | awk '{print $NF}')
 [ -z "$SERIAL_NUM" ] && Uninstall && echo "$CW I can not get serial number!\n" && exit 1
 wget --no-check-certificate https://lotserver.tty1.dev/20991231/$SERIAL_NUM -O /appex/etc/apx.lic
-[ "$(du -b /appex/etc/apx.lic | awk '{ print $1 }')" -ne 160 ] && Uninstall && echo -e "$CW I can not generate the Lic!${normal}\n" && exit 1
+[ "$(du -b /appex/etc/apx.lic | awk '{ print $1 }')" -ne 160 ] && Uninstall && echo -e "$CW Failed to generate license!${normal}\n" && exit 1
 rm -f lotCheck.sh
 [ -n $(which ethtool) ] && rm -rf /appex/bin/ethtool && cp -f $(which ethtool) /appex/bin ; }
 
@@ -106,6 +118,8 @@ chmod -R a+x /appex
 ln -sf /appex/bin/lotServer.sh /etc/init.d/lotServer ; }
 
 [ $# == '1' ] && [ "$1" == 'i' ] && KNK="$(uname -r)" && Install
+[ $# == '1' ] && [ "$1" == 'I' ] && KNK="$(uname -r)" && NoASK=1 && Install
 [ $# == '1' ] && [ "$1" == 'u' ] && Uninstall
+[ $# == '1' ] && [ "$1" == 'U' ] && NoASK=1 && Uninstall
 [ $# == '2' ] && [ "$1" == 'i' ] && KNK="$2" && Install
 echo -ne "Usage:\n     bash $0 [i | u | i '{lotServer of kernel version}']\n"
