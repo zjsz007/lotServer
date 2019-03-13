@@ -6,8 +6,16 @@
 
 ## 新版
 版本号大于 3.11.20.10 ,需要用新版算号器许可证.      
--->[新版许可证生成地址(暂无)](https://moeclub.org)    
+-->[新版许可证生成地址](https://lotserver.tty1.dev/20991231/SERIAL_NUM)    
 
-## [更新历史](http://download.appexnetworks.com.cn/releaseNotes/)     
+## 使用
 
-  
+安装
+```
+bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) i
+```
+
+卸载
+```
+bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) u
+```
