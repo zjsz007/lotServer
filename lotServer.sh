@@ -1,12 +1,19 @@
 #!/bin/bash
 # Original Author: Vicer
+# https://moeclub.org/2017/03/08/14/
+#
 # Modified by Aniverse
 # https://github.com/Aniverse/lotServer
 #
-# bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/ls.sh) i
-#
-# 2019.03.14
-# 0.1.6
+# 2019.04.17
+# 0.1.7
+
+usage_guide() {
+
+bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) i
+echo -e "\n${bold}${white}$(tput setab 0)[System Spec]${normal}\nKernel               $(uname -r)\n" ; /etc/init.d/lotServer status
+
+}
 
 black=$(tput setaf 0); red=$(tput setaf 1); green=$(tput setaf 2); yellow=$(tput setaf 3);
 blue=$(tput setaf 4); magenta=$(tput setaf 5); cyan=$(tput setaf 6); white=$(tput setaf 7); 
@@ -59,9 +66,7 @@ update-rc.d -f lotServer remove >/dev/null 2>&1
 update-rc.d lotServer defaults >/dev/null 2>&1
 /etc/init.d/lotServer start
 clear
-echo -e "\n${bold}${white}$(tput setab 0)[System Spec]${normal}\nOS                   $opsy ($arch)
-Kernel               $KNK\n"
-/etc/init.d/lotServer status
+echo -e "\n${bold}${white}$(tput setab 0)[System Spec]${normal}\nOS                   $opsy ($arch)\nKernel               $KNK\n" ; /etc/init.d/lotServer status
 # [[ $(ps aux | grep appex | grep -v grep) ]] && echo -e "\n${bold}${green}LotServer is running ...${normal}\n" || echo -e "\n${bold}${red}LotServer is NOT running${normal}\n"
 echo ; exit 0 ; }
 
@@ -111,7 +116,7 @@ KNV=$(echo $MyKernel | awk -F '/' '{ print $5 }') && [ -z "$KNV" ] && Uninstall 
 wget --no-check-certificate -qO "/appex/bin/acce-"$KNV"-["$KNA"_"$KNN"_"$KNK"]" "https://raw.githubusercontent.com/Aniverse/lotServer/master/$MyKernel"
 [ ! -f "/appex/bin/acce-"$KNV"-["$KNA"_"$KNN"_"$KNK"]" ] && Uninstall && echo -e "$CW Failed to download acce-$KNV-[$KNA_$KNN_$KNK]!${normal}\n" && exit 1
 # Other work
-APXEXE=$(ls -1 /appex/bin |grep 'acce-')
+APXEXE=$(ls -1 /appex/bin | grep 'acce-' | tail -1)
 sed -i "s/^apxexe\=.*/apxexe\=\"\/appex\/bin\/$APXEXE\"/" /appex/etc/config
 sed -i "s/^accif\=.*/accif\=\"$Eth\"/" /appex/etc/config
 chmod -R a+x /appex
