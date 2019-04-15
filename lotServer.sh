@@ -5,8 +5,8 @@
 # Modified by Aniverse
 # https://github.com/Aniverse/lotServer
 #
-# 2019.04.17
-# 0.1.7
+# 2019.04.15
+# 0.2.0
 
 usage_guide() {
 
@@ -122,9 +122,12 @@ sed -i "s/^accif\=.*/accif\=\"$Eth\"/" /appex/etc/config
 chmod -R a+x /appex
 ln -sf /appex/bin/lotServer.sh /etc/init.d/lotServer ; }
 
+function functionn() {
 [ $# == '1' ] && [ "$1" == 'i' ] && KNK="$(uname -r)" && Install
 [ $# == '1' ] && [ "$1" == 'I' ] && KNK="$(uname -r)" && NoASK=1 && Install
 [ $# == '1' ] && [ "$1" == 'u' ] && Uninstall
 [ $# == '1' ] && [ "$1" == 'U' ] && NoASK=1 && Uninstall
 [ $# == '2' ] && [ "$1" == 'i' ] && KNK="$2" && Install
-echo -ne "Usage:\n     bash $0 [i | u | i '{lotServer of kernel version}']\n"
+echo -ne "Usage:\n     bash $0 [i | u | i '{lotServer of kernel version}']\n" ; }
+
+echo -e "\n${bold}本脚本已翻车，请使用 Vicer 大佬的脚本：\n${green}bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh) install${normal}\n"
