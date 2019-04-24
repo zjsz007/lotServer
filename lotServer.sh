@@ -3,10 +3,15 @@
 # Original Author: MoeClub.org
 #
 # Modified by Aniverse
+# 2019.04.25, v3
 
-[[ $EUID -ne 0 ]] && { echo "$CW This script must be run as root!${normal}" ; exit 1 ; }
+usage_guide() {
+bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) I b
+}
 
-function pause() { echo ; read -p "${bold}Press ${white}${on_green} Enter ${normal}${bold} to Continue ...${normal} " INP ; }
+[[ $EUID -ne 0 ]] && { echo "ERROR: This script must be run as root!" ; exit 1 ; }
+
+function pause() { echo ; read -p "Press Enter to Continue ..." INP ; }
 
 mkdir -p /tmp
 cd /tmp
@@ -38,16 +43,14 @@ acce_ver=$(acce_check ${KNV})
 [[ -z $Lic ]] && Lic=a && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
 # https://github.com/MoeClub/lotServer/compare/master...wxlost:master
 [[ $Lic == b ]] && LicURL="https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
-# https://github.com/MoeClub/lotServer/compare/master...liulanyinghuo:master
-[[ $Lic == c ]] && LicURL="http://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
 # https://github.com/MoeClub/lotServer/compare/master...Jack8Li:master
-[[ $Lic == d ]] && LicURL="https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}"
+[[ $Lic == c ]] && LicURL="https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}"
 # https://github.com/MoeClub/lotServer/compare/master...ouyangmland:master
-[[ $Lic == e ]] && LicURL="https://www.speedsvip.com/keygen.php?mac=${Mac}"
-[[ $Lic =~ (a|b|c|d|e) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
+[[ $Lic == d ]] && LicURL="https://www.speedsvip.com/keygen.php?mac=${Mac}"
+[[ $Lic =~ (a|b|c|d) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
 
 [[ $Lic == local ]] && {
-which php || { echo -e "ERROR: No php found" ; exit 1 ; }
+which php > /dev/null || Uninstall "Error! No php found"
 git clone https://github.com/Tai7sy/LotServer_KeyGen
 cd LotServer_KeyGen
 git checkout b9f13eb
@@ -81,7 +84,6 @@ function Install()
   AcceVer=$(echo "$AcceData" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |awk -F'/' '{print $NF}' |sort -nk 2 -t '_' |tail -n1)
   MyKernel=$(echo "$AcceData" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |grep "$AcceVer" |tail -n1)
   [ -z "$MyKernel" ] && echo -ne "Kernel not be matched! \nYou should change kernel manually, and try again! \n\nView the link to get details: \n"$URLKernel" \n\n\n" && exit 1
-  pause;
   KNN=$(echo "$MyKernel" |awk -F '/' '{ print $2 }') && [ -z "$KNN" ] && Uninstall "Error! Not Matched. "
   KNV=$(echo "$MyKernel" |awk -F '/' '{ print $5 }') && [ -z "$KNV" ] && Uninstall "Error! Not Matched. "
   AcceRoot="/tmp/lotServer"
@@ -142,4 +144,3 @@ elif [ $# == '3' ]; then
 else
   echo -ne "Usage:\n     bash $0 [install |uninstall |install '{Kernel Version}']\n"
 fi
-
