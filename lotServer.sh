@@ -1,133 +1,145 @@
 #!/bin/bash
-# Original Author: Vicer
-# https://moeclub.org/2017/03/08/14/
+#
+# Original Author: MoeClub.org
 #
 # Modified by Aniverse
-# https://github.com/Aniverse/lotServer
-#
-# 2019.04.15
-# 0.2.0
-
-usage_guide() {
-
-bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) i
-echo -e "\n${bold}${white}$(tput setab 0)[System Spec]${normal}\nKernel               $(uname -r)\n" ; /etc/init.d/lotServer status
-
-}
-
-black=$(tput setaf 0); red=$(tput setaf 1); green=$(tput setaf 2); yellow=$(tput setaf 3);
-blue=$(tput setaf 4); magenta=$(tput setaf 5); cyan=$(tput setaf 6); white=$(tput setaf 7); 
-bold=$(tput bold); normal=$(tput sgr0); on_red=$(tput setab 1); on_green=$(tput setab 2)
-CW="${bold}${white}${on_red} ERROR ${normal}${bold}"
-arch=$( uname -m )
-[ -f /etc/redhat-release ] && opsy=$(awk '{print ($1,$3~/^[0-9]/?$3:$4)}' /etc/redhat-release)
-[ -f /etc/lsb-release ] && opsy=$(awk -F'[="]+' '/DESCRIPTION/{print $2}' /etc/lsb-release)
-#[ -f /etc/os-release ] && opsy=$(awk -F'[="]+' '/DESCRIPTION/{print $2}' /etc/lsb-release)
-[ -f /etc/os-release ] && {
-Distro=$(awk -F'[= "]' '/PRETTY_NAME/{print $3}' /etc/os-release)
-[[ $Distro == Ubuntu ]] && osversion=$(grep Ubuntu /etc/issue | head -1 | grep -oE  "[0-9.]+")
-[[ $Distro == Debian ]] && osversion=$(cat /etc/debian_version)
-Codename=$(cat /etc/os-release | grep VERSION= | tr '[A-Z]' '[a-z]' | sed 's/\"\|(\|)\|[0-9.,]\|version\|lts//g' | awk '{print $2}')
-opsy="$(echo $Distro $osversion $Codename)"
-}
 
 [[ $EUID -ne 0 ]] && { echo "$CW This script must be run as root!${normal}" ; exit 1 ; }
 
 function pause() { echo ; read -p "${bold}Press ${white}${on_green} Enter ${normal}${bold} to Continue ...${normal} " INP ; }
 
-function Check() {
 mkdir -p /tmp
 cd /tmp
-echo -e "\n${bold}Preparatory work ...${normal}\n"
-apt-get >/dev/null 2>&1
-[ $? -le '1' ] && apt-get -y -qq install grep unzip ethtool >/dev/null 2>&1
-yum >/dev/null 2>&1
-[ $? -le '1' ] && yum -y -q install which sed grep awk unzip ethtool >/dev/null 2>&1
-[ -f /etc/redhat-release ] && KNA=$(awk '{print $1}' /etc/redhat-release)
-[ -f /etc/os-release ] && KNA=$(awk -F'[= "]' '/PRETTY_NAME/{print $3}' /etc/os-release)
-[ -f /etc/lsb-release ] && KNA=$(awk -F'[="]+' '/DISTRIB_ID/{print $2}' /etc/lsb-release)
-KNB=$(getconf LONG_BIT)
-ifconfig >/dev/null 2>&1
-[ $? -gt '1' ] && echo -e "$CW I can not run 'ifconfig' successfully! \nPlease check your system, and try again!${normal}\n" && exit 1;
-[ ! -f /proc/net/dev ] && echo -e "$CW I can not find network device!${normal}\n" && exit 1;
-[ -n "$(grep 'eth0:' /proc/net/dev)" ] && Eth=eth0 || Eth=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet' |awk 'NR==1 {print $0}'`
-[ -z "$Eth" ] && echo -e "$CW I can not find the server pubilc Ethernet!${normal}\n" && exit 1
-URLKernel='https://raw.githubusercontent.com/MoeClub/lotServer/master/lotServer.log'
-AcceVer=$(wget --no-check-certificate -qO- "$URLKernel" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |awk -F'/' '{print $NF}' |sort -n -k 2 -t '_' |tail -n 1)
-MyKernel=$(wget --no-check-certificate -qO- "$URLKernel" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |grep "$AcceVer" |tail -n 1)
-[ -z "$MyKernel" ] && echo -e "$CW Kernel not be matched, you should change kernel manually and try again! \n\nView the link to get detaits: \n${green}$URLKernel ${normal}\n\n\n" && exit 1 ; }
 
-function Install() {
-[ -z $NoASK ] && pause
-Check
-lotServer
-Lic
-update-rc.d -f lotServer remove >/dev/null 2>&1
-update-rc.d lotServer defaults >/dev/null 2>&1
-/etc/init.d/lotServer start
-clear
-echo -e "\n${bold}${white}$(tput setab 0)[System Spec]${normal}\nOS                   $opsy ($arch)\nKernel               $KNK\n" ; /etc/init.d/lotServer status
-# [[ $(ps aux | grep appex | grep -v grep) ]] && echo -e "\n${bold}${green}LotServer is running ...${normal}\n" || echo -e "\n${bold}${red}LotServer is NOT running${normal}\n"
-echo ; exit 0 ; }
+function dep_check()
+{
+  apt-get >/dev/null 2>&1
+  [ $? -le '1' ] && apt-get -y -qq install sed grep gawk ethtool ca-certificates >/dev/null 2>&1
+  yum >/dev/null 2>&1
+  [ $? -le '1' ] && yum -y -q install sed grep gawk ethtool >/dev/null 2>&1
+}
 
-function Uninstall() {
-[ -z $NoASK ] && pause
-chattr -R -i /appex >/dev/null 2>&1
-[ -d /etc/rc.d ] && rm -rf /etc/rc.d/init.d/serverSpeeder >/dev/null 2>&1
-[ -d /etc/rc.d ] && rm -rf /etc/rc.d/rc*.d/*serverSpeeder >/dev/null 2>&1
-[ -d /etc/rc.d ] && rm -rf /etc/rc.d/init.d/lotServer >/dev/null 2>&1
-[ -d /etc/rc.d ] && rm -rf /etc/rc.d/rc*.d/*lotServer >/dev/null 2>&1
-[ -d /etc/init.d ] && rm -rf /etc/init.d/serverSpeeder >/dev/null 2>&1
-[ -d /etc/init.d ] && rm -rf /etc/rc*.d/*serverSpeeder >/dev/null 2>&1
-[ -d /etc/init.d ] && rm -rf /etc/init.d/lotServer >/dev/null 2>&1
-[ -d /etc/init.d ] && rm -rf /etc/rc*.d/*lotServer >/dev/null 2>&1
-rm -rf /etc/lotServer.conf >/dev/null 2>&1
-rm -rf /etc/serverSpeeder.conf >/dev/null 2>&1
-[ -f /appex/bin/lotServer.sh ]     && { bash /appex/bin/lotServer.sh     stop >/dev/null 2>&1 ; bash /appex/bin/lotServer.sh uninstall -f     >/dev/null 2>&1 ; }
-[ -f /appex/bin/serverSpeeder.sh ] && { bash /appex/bin/serverSpeeder.sh stop >/dev/null 2>&1 ; bash /appex/bin/serverSpeeder.sh uninstall -f >/dev/null 2>&1 ; }
-rm -rf /appex >/dev/null 2>&1
-rm -rf /tmp/appex* >/dev/null 2>&1
-echo -e "\n${bold}lotServer has been removed!${normal} \n"
-exit 0 ; }
+function acce_check()
+{
+  local IFS='.'
+  read ver01 ver02 ver03 ver04 <<<"$1"
+  sum01=$[$ver01*2**32]
+  sum02=$[$ver02*2**16]
+  sum03=$[$ver03*2**8]
+  sum04=$[$ver04*2**0]
+  sum=$[$sum01+$sum02+$sum03+$sum04]
+  [ "$sum" -gt '12885627914' ] && echo "1" || echo "0"
+}
 
-function Lic() {
-wget --no-check-certificate https://raw.githubusercontent.com/Aniverse/lotServer/master/lotCheck.sh -qO lotCheck.sh
-chmod +x lotCheck.sh
-SERIAL_NUM=$(./lotCheck.sh | grep Serial | awk '{print $NF}')
-[ -z "$SERIAL_NUM" ] && Uninstall && echo "$CW I can not get serial number!\n" && exit 1
-wget --no-check-certificate https://lotserver.tty1.dev/20991231/$SERIAL_NUM -O /appex/etc/apx.lic
-[ "$(du -b /appex/etc/apx.lic | awk '{ print $1 }')" -ne 160 ] && Uninstall && echo -e "$CW Failed to generate license!${normal}\n" && exit 1
-rm -f lotCheck.sh
-[ -n $(which ethtool) ] && rm -rf /appex/bin/ethtool && cp -f $(which ethtool) /appex/bin ; }
+function generate_lic() {
+acce_ver=$(acce_check ${KNV})
 
-function lotServer() {
-# Get lotServer
-mkdir -p /appex/etc /appex/bin
-chattr -R -i /appex >/dev/null 2>&1
-wget --no-check-certificate -O /tmp/lotServer.tar https://github.com/Aniverse/lotServer/raw/master/lotServer.tar
-tar xf /tmp/lotServer.tar
-sed -i '/^# Set acc inf/,$d' /tmp/lotServer/install.sh
-echo -e 'boot=y && addStartUpLink' >> /tmp/lotServer/install.sh
-bash /tmp/lotServer/install.sh
-rm -rf /tmp/lotServer /tmp/lotServer.zip
-# Get proper binary
-KNN=$(echo $MyKernel | awk -F '/' '{ print $2 }') && [ -z "$KNN" ] && Uninstall && echo -e "$CW KNN not matched!${normal}\n" && exit 1
-KNV=$(echo $MyKernel | awk -F '/' '{ print $5 }') && [ -z "$KNV" ] && Uninstall && echo -e "$CW KNV not matched!${normal}\n" && exit 1
-wget --no-check-certificate -qO "/appex/bin/acce-"$KNV"-["$KNA"_"$KNN"_"$KNK"]" "https://raw.githubusercontent.com/Aniverse/lotServer/master/$MyKernel"
-[ ! -f "/appex/bin/acce-"$KNV"-["$KNA"_"$KNN"_"$KNK"]" ] && Uninstall && echo -e "$CW Failed to download acce-$KNV-[$KNA_$KNN_$KNK]!${normal}\n" && exit 1
-# Other work
-APXEXE=$(ls -1 /appex/bin | grep 'acce-' | tail -1)
-sed -i "s/^apxexe\=.*/apxexe\=\"\/appex\/bin\/$APXEXE\"/" /appex/etc/config
-sed -i "s/^accif\=.*/accif\=\"$Eth\"/" /appex/etc/config
-chmod -R a+x /appex
-ln -sf /appex/bin/lotServer.sh /etc/init.d/lotServer ; }
+# [[ $(which php) ]] && Lic=local
+[[ -z $Lic ]] && Lic=a && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
+# https://github.com/MoeClub/lotServer/compare/master...wxlost:master
+[[ $Lic == b ]] && LicURL="https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
+# https://github.com/MoeClub/lotServer/compare/master...liulanyinghuo:master
+[[ $Lic == c ]] && LicURL="http://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
+# https://github.com/MoeClub/lotServer/compare/master...Jack8Li:master
+[[ $Lic == d ]] && LicURL="https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}"
+# https://github.com/MoeClub/lotServer/compare/master...ouyangmland:master
+[[ $Lic == e ]] && LicURL="https://www.speedsvip.com/keygen.php?mac=${Mac}"
+[[ $Lic =~ (a|b|c|d|e) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
 
-function functionn() {
-[ $# == '1' ] && [ "$1" == 'i' ] && KNK="$(uname -r)" && Install
-[ $# == '1' ] && [ "$1" == 'I' ] && KNK="$(uname -r)" && NoASK=1 && Install
-[ $# == '1' ] && [ "$1" == 'u' ] && Uninstall
-[ $# == '1' ] && [ "$1" == 'U' ] && NoASK=1 && Uninstall
-[ $# == '2' ] && [ "$1" == 'i' ] && KNK="$2" && Install
-echo -ne "Usage:\n     bash $0 [i | u | i '{lotServer of kernel version}']\n" ; }
+[[ $Lic == local ]] && {
+which php || { echo -e "ERROR: No php found" ; exit 1 ; }
+git clone https://github.com/Tai7sy/LotServer_KeyGen
+cd LotServer_KeyGen
+git checkout b9f13eb
+php keygen.php $Mac
+mv out.lic ${AcceTmp}/etc/apx.lic
+cd ..
+rm -rf LotServer_KeyGen ; }
 
-echo -e "\n${bold}本脚本已翻车，请使用 Vicer 大佬的脚本：\n${green}bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh) install${normal}\n"
+[ "$(du -b ${AcceTmp}/etc/apx.lic |cut -f1)" -lt '152' ] && Uninstall "Error! I can not generate the Lic for you, Please try again later. "
+echo "Lic generate success! " ; }
+
+function Install()
+{
+  echo 'Preparatory work...'
+  Uninstall;
+  dep_check;
+  [ -f /etc/redhat-release ] && KNA=$(awk '{print $1}' /etc/redhat-release)
+  [ -f /etc/os-release ] && KNA=$(awk -F'[= "]' '/PRETTY_NAME/{print $3}' /etc/os-release)
+  [ -f /etc/lsb-release ] && KNA=$(awk -F'[="]+' '/DISTRIB_ID/{print $2}' /etc/lsb-release)
+  KNB=$(getconf LONG_BIT)
+  [ ! -f /proc/net/dev ] && echo -ne "I can not find network device! \n\n" && exit 1;
+  Eth_List=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet' |awk 'NR==1 {print $0}'`
+  [ -z "$Eth_List" ] && echo "I can not find the server pubilc Ethernet! " && exit 1
+# Eth=$(echo "$Eth_List" |head -n1)
+  Eth=$(ip route get 8.8.8.8 | awk '{print $5}')
+  [ -z "$Eth" ] && Uninstall "Error! Not found a valid ether. "
+  Mac=$(cat /sys/class/net/${Eth}/address)
+  [ -z "$Mac" ] && Uninstall "Error! Not found mac code. "
+  URLKernel='https://github.com/Aniverse/lotServer/raw/master/lotServer.log'
+  AcceData=$(wget --no-check-certificate -qO- "$URLKernel")
+  AcceVer=$(echo "$AcceData" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |awk -F'/' '{print $NF}' |sort -nk 2 -t '_' |tail -n1)
+  MyKernel=$(echo "$AcceData" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |grep "$AcceVer" |tail -n1)
+  [ -z "$MyKernel" ] && echo -ne "Kernel not be matched! \nYou should change kernel manually, and try again! \n\nView the link to get details: \n"$URLKernel" \n\n\n" && exit 1
+  pause;
+  KNN=$(echo "$MyKernel" |awk -F '/' '{ print $2 }') && [ -z "$KNN" ] && Uninstall "Error! Not Matched. "
+  KNV=$(echo "$MyKernel" |awk -F '/' '{ print $5 }') && [ -z "$KNV" ] && Uninstall "Error! Not Matched. "
+  AcceRoot="/tmp/lotServer"
+  AcceTmp="${AcceRoot}/apxfiles"
+  AcceBin="acce-"$KNV"-["$KNA"_"$KNN"_"$KNK"]"
+  mkdir -p "${AcceTmp}/bin/"
+  mkdir -p "${AcceTmp}/etc/"
+  wget --no-check-certificate -qO "${AcceTmp}/bin/${AcceBin}" "https://github.com/Aniverse/lotServer/raw/master/${MyKernel}"
+  [ ! -f "${AcceTmp}/bin/${AcceBin}" ] && Uninstall "Download Error! Not Found ${AcceBin}. "
+  wget --no-check-certificate -qO "/tmp/lotServer.tar" "https://github.com/Aniverse/lotServer/raw/master/lotServer.tar"
+  tar -xvf "/tmp/lotServer.tar" -C /tmp
+  generate_lic
+  sed -i "s/^accif\=.*/accif\=\"$Eth\"/" "${AcceTmp}/etc/config"
+  sed -i "s/^apxexe\=.*/apxexe\=\"\/appex\/bin\/$AcceBin\"/" "${AcceTmp}/etc/config"
+  bash "${AcceRoot}/install.sh" -in 1000000 -out 1000000 -t 0 -r -b -i ${Eth}
+  rm -rf /tmp/*lotServer* >/dev/null 2>&1
+  if [ -f /appex/bin/serverSpeeder.sh ]; then
+    bash /appex/bin/serverSpeeder.sh status
+  elif [ -f /appex/bin/lotServer.sh ]; then
+    bash /appex/bin/lotServer.sh status
+  fi
+  exit 0
+}
+
+function Uninstall()
+{
+  AppexName="lotServer"
+  [ -e /appex ] && chattr -R -i /appex >/dev/null 2>&1
+  if [ -d /etc/rc.d ]; then
+    rm -rf /etc/rc.d/init.d/serverSpeeder >/dev/null 2>&1
+    rm -rf /etc/rc.d/rc*.d/*serverSpeeder >/dev/null 2>&1
+    rm -rf /etc/rc.d/init.d/lotServer >/dev/null 2>&1
+    rm -rf /etc/rc.d/rc*.d/*lotServer >/dev/null 2>&1
+  fi
+  if [ -d /etc/init.d ]; then
+    rm -rf /etc/init.d/*serverSpeeder* >/dev/null 2>&1
+    rm -rf /etc/rc*.d/*serverSpeeder* >/dev/null 2>&1
+    rm -rf /etc/init.d/*lotServer* >/dev/null 2>&1
+    rm -rf /etc/rc*.d/*lotServer* >/dev/null 2>&1
+  fi
+  rm -rf /etc/lotServer.conf >/dev/null 2>&1
+  rm -rf /etc/serverSpeeder.conf >/dev/null 2>&1
+  [ -f /appex/bin/lotServer.sh ] && AppexName="lotServer" && bash /appex/bin/lotServer.sh uninstall -f >/dev/null 2>&1
+  [ -f /appex/bin/serverSpeeder.sh ] && AppexName="serverSpeeder" && bash /appex/bin/serverSpeeder.sh uninstall -f >/dev/null 2>&1
+  rm -rf /appex >/dev/null 2>&1
+  rm -rf /tmp/*${AppexName}* >/dev/null 2>&1
+  [ -n "$1" ] && echo -ne "$AppexName has been removed! \n" && echo "$1" && echo -ne "\n\n\n" && exit 0
+}
+
+if [ $# == '1' ]; then
+  [ "$1" == 'install' ] && KNK="$(uname -r)" && Install;
+  [ "$1" == 'uninstall' ] && Uninstall "Done.";
+elif [ $# == '2' ]; then
+  [ "$1" == 'install' ] && KNK="$2" && Install;
+  [ "$1" == 'I' ] && KNK="$(uname -r)" && Lic=$2 && Install;
+elif [ $# == '3' ]; then
+  [ "$1" == 'I' ] && KNK="$2" && Lic=$3 && Install;
+else
+  echo -ne "Usage:\n     bash $0 [install |uninstall |install '{Kernel Version}']\n"
+fi
+
