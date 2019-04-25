@@ -3,7 +3,7 @@
 # Original Author: MoeClub.org
 #
 # Modified by Aniverse
-# 2019.04.25, v3
+# 2019.04.25, v4
 
 usage_guide() {
 bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) I b
@@ -40,7 +40,8 @@ function generate_lic() {
 acce_ver=$(acce_check ${KNV})
 
 # [[ $(which php) ]] && Lic=local
-[[ -z $Lic ]] && Lic=a && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
+[[ -z $Lic ]] && Lic=b
+[[ $Lic == a ]] && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
 # https://github.com/MoeClub/lotServer/compare/master...wxlost:master
 [[ $Lic == b ]] && LicURL="https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
 # https://github.com/MoeClub/lotServer/compare/master...Jack8Li:master
@@ -50,6 +51,8 @@ acce_ver=$(acce_check ${KNV})
 [[ $Lic =~ (a|b|c|d) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
 
 [[ $Lic == local ]] && {
+which php > /dev/null || Uninstall "Error! No php found"
+apt-get install -y php
 which php > /dev/null || Uninstall "Error! No php found"
 git clone https://github.com/Tai7sy/LotServer_KeyGen
 cd LotServer_KeyGen
