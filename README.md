@@ -1,21 +1,28 @@
 # lotServer
 
-## 旧版
-版本号小于等于 3.11.20.10 ,可用旧版本算号器生成许可证.      
--->[旧版许可证生成地址](https://moeclub.azurewebsites.net/)    
+## Install
 
-## 新版
-版本号大于 3.11.20.10 ,需要用新版算号器许可证.      
--->[新版许可证生成地址](https://lotserver.tty1.dev/20991231/SERIAL_NUM)    
-
-## 使用
-
-安装
 ```
-bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) i
+bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
 ```
 
-卸载
+Or You could choose how to get license, mode could be specified as a,b,c,d,e,f,g and local
 ```
-bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) u
+bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) I <mode>
+```
+
+Currently the default mode for license generator is mode b.
+```
+a https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}
+b https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}
+c https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}
+d http://speedsvip.eu5.org/keygen.php?mac=${Mac}
+e http://104.167.103.163/keygen.php?ver=${acce_ver}&mac=${Mac}
+f http://key.vps.bi/keygen.php?ver=${acce_ver}&mac=${Mac}
+g https://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}
+```
+
+## Uninstall
+```
+bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) uninstall
 ```
