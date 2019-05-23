@@ -3,10 +3,10 @@
 # Original Author: MoeClub.org
 #
 # Modified by Aniverse
-# 2019.04.25, v4
+# 2019.05.23, v5
 
 usage_guide() {
-bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) I b
+bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
 }
 
 [[ $EUID -ne 0 ]] && { echo "ERROR: This script must be run as root!" ; exit 1 ; }
@@ -47,11 +47,17 @@ acce_ver=$(acce_check ${KNV})
 # https://github.com/MoeClub/lotServer/compare/master...Jack8Li:master
 [[ $Lic == c ]] && LicURL="https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}"
 # https://github.com/MoeClub/lotServer/compare/master...ouyangmland:master
-[[ $Lic == d ]] && LicURL="https://www.speedsvip.com/keygen.php?mac=${Mac}"
-[[ $Lic =~ (a|b|c|d) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
+[[ $Lic == d ]] && LicURL="http://speedsvip.eu5.org/keygen.php?mac=${Mac}"
+# https://github.com/jmireles7/lotServer/commit/dae9c4f781cf8ae01c9934320c05105071518627
+[[ $Lic == e ]] && LicURL="http://104.167.103.163/keygen.php?ver=${acce_ver}&mac=${Mac}"
+# https://github.com/luopos/lotServer/commit/c035cdf5db2e48281829749b8caddcf41fe7d995
+[[ $Lic == f ]] && LicURL="http://key.vps.bi/keygen.php?ver=${acce_ver}&mac=${Mac}"
+# https://github.com/liulanyinghuo/lotServer/commit/27f98562182d19bce5a32c1355f949b0f06e5d8c
+[[ $Lic == g ]] && LicURL="https://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
+[[ $Lic =~ (a|b|c|d|e|f|g) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
 
 [[ $Lic == local ]] && {
-which php > /dev/null || Uninstall "Error! No php found"
+which php > /dev/null
 apt-get install -y php
 which php > /dev/null || Uninstall "Error! No php found"
 git clone https://github.com/Tai7sy/LotServer_KeyGen
@@ -127,6 +133,7 @@ function Uninstall()
     rm -rf /etc/init.d/*lotServer* >/dev/null 2>&1
     rm -rf /etc/rc*.d/*lotServer* >/dev/null 2>&1
   fi
+  rm -rf /usr/lib/systemd/system/lotserver.service >/dev/null 2>&1
   rm -rf /etc/lotServer.conf >/dev/null 2>&1
   rm -rf /etc/serverSpeeder.conf >/dev/null 2>&1
   [ -f /appex/bin/lotServer.sh ] && AppexName="lotServer" && bash /appex/bin/lotServer.sh uninstall -f >/dev/null 2>&1
@@ -136,14 +143,19 @@ function Uninstall()
   [ -n "$1" ] && echo -ne "$AppexName has been removed! \n" && echo "$1" && echo -ne "\n\n\n" && exit 0
 }
 
+function UsageE() { echo -ne "Usage:\n     bash $0 [install |uninstall |install '{Kernel Version}']\n" ; }
+
 if [ $# == '1' ]; then
-  [ "$1" == 'install' ] && KNK="$(uname -r)" && Install;
-  [ "$1" == 'uninstall' ] && Uninstall "Done.";
+  [ "$1" == 'install' ] && KNK="$(uname -r)" && Install && Usage=No
+  [ "$1" == 'uninstall' ] && Uninstall "Done." && Usage=No
+  [[ $Usage != No ]] && UsageE
 elif [ $# == '2' ]; then
-  [ "$1" == 'install' ] && KNK="$2" && Install;
-  [ "$1" == 'I' ] && KNK="$(uname -r)" && Lic=$2 && Install;
+  [ "$1" == 'install' ] && KNK="$2" && Install && Usage=No
+  [ "$1" == 'I' ] && KNK="$(uname -r)" && Lic=$2 && Install && Usage=No
+  [[ $Usage != No ]] && UsageE
 elif [ $# == '3' ]; then
-  [ "$1" == 'I' ] && KNK="$2" && Lic=$3 && Install;
+  [ "$1" == 'I' ] && KNK="$2" && Lic=$3 && Install && Usage=No
+  [[ $Usage != No ]] && UsageE
 else
-  echo -ne "Usage:\n     bash $0 [install |uninstall |install '{Kernel Version}']\n"
+  UsageE
 fi
