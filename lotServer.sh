@@ -3,7 +3,7 @@
 # Original Author: MoeClub.org
 #
 # Modified by Aniverse
-# 2019.05.23, v6
+# 2019.05.23, v7
 
 usage_guide() {
 bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
@@ -152,10 +152,10 @@ if [ $# == '1' ]; then
   [[ $Usage != No ]] && UsageE
 elif [ $# == '2' ]; then
   [ "$1" == 'install' ] && KNK="$2" && Install && Usage=No
-  [ "$1" == 'I' ] && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$(uname -r)" && Lic=$2 && Install && Usage=No
+  [ "$1" == 'I' ] && Lic=$2 && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$(uname -r)" && Install && Usage=No
   [[ $Usage != No ]] && UsageE
 elif [ $# == '3' ]; then
-  [ "$1" == 'I' ] && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$2" && Lic=$3 && Install && Usage=No
+  [ "$1" == 'I' ] && Lic=$3 && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$2" && Install && Usage=No
   [[ $Usage != No ]] && UsageE
 else
   UsageE
