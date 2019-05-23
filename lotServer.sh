@@ -3,7 +3,7 @@
 # Original Author: MoeClub.org
 #
 # Modified by Aniverse
-# 2019.05.23, v5
+# 2019.05.23, v6
 
 usage_guide() {
 bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
@@ -57,9 +57,10 @@ acce_ver=$(acce_check ${KNV})
 [[ $Lic =~ (a|b|c|d|e|f|g) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
 
 [[ $Lic == local ]] && {
-which php > /dev/null
-apt-get install -y php
+which php > /dev/null || apt-get install -y php
 which php > /dev/null || Uninstall "Error! No php found"
+which git > /dev/null || apt-get install -y git
+which git > /dev/null || Uninstall "Error! No git found"
 git clone https://github.com/Tai7sy/LotServer_KeyGen
 cd LotServer_KeyGen
 git checkout b9f13eb
@@ -151,10 +152,10 @@ if [ $# == '1' ]; then
   [[ $Usage != No ]] && UsageE
 elif [ $# == '2' ]; then
   [ "$1" == 'install' ] && KNK="$2" && Install && Usage=No
-  [ "$1" == 'I' ] && KNK="$(uname -r)" && Lic=$2 && Install && Usage=No
+  [ "$1" == 'I' ] && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$(uname -r)" && Lic=$2 && Install && Usage=No
   [[ $Usage != No ]] && UsageE
 elif [ $# == '3' ]; then
-  [ "$1" == 'I' ] && KNK="$2" && Lic=$3 && Install && Usage=No
+  [ "$1" == 'I' ] && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$2" && Lic=$3 && Install && Usage=No
   [[ $Usage != No ]] && UsageE
 else
   UsageE

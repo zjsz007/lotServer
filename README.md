@@ -13,13 +13,13 @@ bash <(wget -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) 
 
 Currently the default mode for license generator is mode b.
 ```
-a https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}
-b https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}
-c https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}
-d http://speedsvip.eu5.org/keygen.php?mac=${Mac}
-e http://104.167.103.163/keygen.php?ver=${acce_ver}&mac=${Mac}
-f http://key.vps.bi/keygen.php?ver=${acce_ver}&mac=${Mac}
-g https://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}
+a     https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}
+b     https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}
+c     https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}
+d     http://speedsvip.eu5.org/keygen.php?mac=${Mac}
+e     http://104.167.103.163/keygen.php?ver=${acce_ver}&mac=${Mac}
+f     http://key.vps.bi/keygen.php?ver=${acce_ver}&mac=${Mac}
+g     https://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}
 ```
 
 ## Uninstall
