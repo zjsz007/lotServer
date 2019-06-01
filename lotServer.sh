@@ -3,10 +3,16 @@
 # Original Author: MoeClub.org
 #
 # Modified by Aniverse
-# 2019.05.23, v7
+
+script_update=2019.06.01
+script_version=r10008
 
 usage_guide() {
 bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
+bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh) install
+/appex/etc/apx.lic
+bash /appex/bin/lotServer.sh start
+bash /appex/bin/lotServer.sh status
 }
 
 [[ $EUID -ne 0 ]] && { echo "ERROR: This script must be run as root!" ; exit 1 ; }
@@ -40,7 +46,7 @@ function generate_lic() {
 acce_ver=$(acce_check ${KNV})
 
 # [[ $(which php) ]] && Lic=local
-[[ -z $Lic ]] && Lic=b
+[[ -z $Lic ]] && Lic=a
 [[ $Lic == a ]] && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
 # https://github.com/MoeClub/lotServer/compare/master...wxlost:master
 [[ $Lic == b ]] && LicURL="https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
@@ -84,9 +90,10 @@ function Install()
   [ ! -f /proc/net/dev ] && echo -ne "I can not find network device! \n\n" && exit 1;
   Eth_List=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet' |awk 'NR==1 {print $0}'`
   [ -z "$Eth_List" ] && echo "I can not find the server pubilc Ethernet! " && exit 1
-# Eth=$(echo "$Eth_List" |head -n1)
-  Eth=$(ip route get 8.8.8.8 | awk '{print $5}')
+  Eth=$(echo "$Eth_List" |head -n1)
+  EthConfig=$(ip route get 8.8.8.8 | awk '{print $5}')
   [ -z "$Eth" ] && Uninstall "Error! Not found a valid ether. "
+  [ -z "$EthConfig" ] && Uninstall "Error! Not found a valid ether for config. "
   Mac=$(cat /sys/class/net/${Eth}/address)
   [ -z "$Mac" ] && Uninstall "Error! Not found mac code. "
   URLKernel='https://github.com/Aniverse/lotServer/raw/master/lotServer.log'
@@ -106,7 +113,7 @@ function Install()
   wget --no-check-certificate -qO "/tmp/lotServer.tar" "https://github.com/Aniverse/lotServer/raw/master/lotServer.tar"
   tar -xvf "/tmp/lotServer.tar" -C /tmp
   generate_lic
-  sed -i "s/^accif\=.*/accif\=\"$Eth\"/" "${AcceTmp}/etc/config"
+  sed -i "s/^accif\=.*/accif\=\"$EthConfig\"/" "${AcceTmp}/etc/config"
   sed -i "s/^apxexe\=.*/apxexe\=\"\/appex\/bin\/$AcceBin\"/" "${AcceTmp}/etc/config"
   bash "${AcceRoot}/install.sh" -in 1000000 -out 1000000 -t 0 -r -b -i ${Eth}
   rm -rf /tmp/*lotServer* >/dev/null 2>&1
