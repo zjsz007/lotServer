@@ -5,11 +5,11 @@
 # Modified by Aniverse
 
 script_update=2019.06.01
-script_version=r10008
+script_version=r10009
 
 usage_guide() {
 bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
-bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh) install
+bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh) uninstall
 /appex/etc/apx.lic
 bash /appex/bin/lotServer.sh start
 bash /appex/bin/lotServer.sh status
@@ -80,7 +80,7 @@ echo "Lic generate success! " ; }
 
 function Install()
 {
-  echo 'Preparatory work...'
+  echo "Preparatory work... $script_version"
   Uninstall;
   dep_check;
   [ -f /etc/redhat-release ] && KNA=$(awk '{print $1}' /etc/redhat-release)
@@ -96,6 +96,7 @@ function Install()
   [ -z "$EthConfig" ] && Uninstall "Error! Not found a valid ether for config. "
   Mac=$(cat /sys/class/net/${Eth}/address)
   [ -z "$Mac" ] && Uninstall "Error! Not found mac code. "
+  echo "Eth=$Eth EthConfig=$EthConfig"
   URLKernel='https://github.com/Aniverse/lotServer/raw/master/lotServer.log'
   AcceData=$(wget --no-check-certificate -qO- "$URLKernel")
   AcceVer=$(echo "$AcceData" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |awk -F'/' '{print $NF}' |sort -nk 2 -t '_' |tail -n1)
