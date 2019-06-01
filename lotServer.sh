@@ -5,7 +5,7 @@
 # Modified by Aniverse
 
 script_update=2019.06.01
-script_version=r10009
+script_version=r10010
 
 usage_guide() {
 bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
@@ -116,7 +116,7 @@ function Install()
   generate_lic
   sed -i "s/^accif\=.*/accif\=\"$EthConfig\"/" "${AcceTmp}/etc/config"
   sed -i "s/^apxexe\=.*/apxexe\=\"\/appex\/bin\/$AcceBin\"/" "${AcceTmp}/etc/config"
-  bash "${AcceRoot}/install.sh" -in 1000000 -out 1000000 -t 0 -r -b -i ${Eth}
+  bash "${AcceRoot}/install.sh" -in 1000000 -out 1000000 -t 0 -r -b -i ${EthConfig}
   rm -rf /tmp/*lotServer* >/dev/null 2>&1
   if [ -f /appex/bin/serverSpeeder.sh ]; then
     bash /appex/bin/serverSpeeder.sh status
