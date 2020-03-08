@@ -4,8 +4,8 @@
 #
 # Modified by Aniverse
 
-script_update=2019.06.01
-script_version=r10010
+script_update=2020.03.08
+script_version=r10011
 
 usage_guide() {
 bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
@@ -88,15 +88,28 @@ function Install()
   [ -f /etc/lsb-release ] && KNA=$(awk -F'[="]+' '/DISTRIB_ID/{print $2}' /etc/lsb-release)
   KNB=$(getconf LONG_BIT)
   [ ! -f /proc/net/dev ] && echo -ne "I can not find network device! \n\n" && exit 1;
-  Eth_List=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet' |awk 'NR==1 {print $0}'`
-  [ -z "$Eth_List" ] && echo "I can not find the server pubilc Ethernet! " && exit 1
-  Eth=$(echo "$Eth_List" |head -n1)
-  EthConfig=$(ip route get 8.8.8.8 | awk '{print $5}')
-  [ -z "$Eth" ] && Uninstall "Error! Not found a valid ether. "
-  [ -z "$EthConfig" ] && Uninstall "Error! Not found a valid ether for config. "
+  #Eth_List=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet' |awk 'NR==1 {print $0}'`
+  #[ -z "$Eth_List" ] && echo "I can not find the server pubilc Ethernet! " && exit 1
+  #Eth=$(echo "$Eth_List" |head -n1)
+  #EthConfig=$(ip route get 8.8.8.8 | awk '{print $5}')
+  #[ -z "$Eth" ] && Uninstall "Error! Not found a valid ether. "
+  #[ -z "$EthConfig" ] && Uninstall "Error! Not found a valid ether for config. "
+  
+  [ -n "$(grep 'eth0:' /proc/net/dev)" ] && wangka1=eth0 || wangka1=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet|^he-ipv6|^docker' |awk 'NR==1 {print $0}'`
+  wangka2=$(ip link show 2>1 | grep -i broadcast | grep -m1 UP  | cut -d: -f 2 | cut -d@ -f 1 | sed 's/ //g')
+  if [[ -n $wangka2 ]]; then
+      if [[ $wangka1 == $wangka2 ]];then
+          Eth=$wangka1
+      else
+          Eth=$wangka2
+      fi
+  else
+      Eth=$wangka1
+  fi
+
   Mac=$(cat /sys/class/net/${Eth}/address)
   [ -z "$Mac" ] && Uninstall "Error! Not found mac code. "
-  echo "Eth=$Eth EthConfig=$EthConfig"
+  echo "Eth=$Eth"
   URLKernel='https://github.com/Aniverse/lotServer/raw/master/lotServer.log'
   AcceData=$(wget --no-check-certificate -qO- "$URLKernel")
   AcceVer=$(echo "$AcceData" |grep "$KNA/" |grep "/x$KNB/" |grep "/$KNK/" |awk -F'/' '{print $NF}' |sort -nk 2 -t '_' |tail -n1)
@@ -114,9 +127,9 @@ function Install()
   wget --no-check-certificate -qO "/tmp/lotServer.tar" "https://github.com/Aniverse/lotServer/raw/master/lotServer.tar"
   tar -xvf "/tmp/lotServer.tar" -C /tmp
   generate_lic
-  sed -i "s/^accif\=.*/accif\=\"$EthConfig\"/" "${AcceTmp}/etc/config"
+  sed -i "s/^accif\=.*/accif\=\"$Eth\"/" "${AcceTmp}/etc/config"
   sed -i "s/^apxexe\=.*/apxexe\=\"\/appex\/bin\/$AcceBin\"/" "${AcceTmp}/etc/config"
-  bash "${AcceRoot}/install.sh" -in 1000000 -out 1000000 -t 0 -r -b -i ${EthConfig}
+  bash "${AcceRoot}/install.sh" -in 1000000 -out 1000000 -t 0 -r -b -i ${Eth}
   rm -rf /tmp/*lotServer* >/dev/null 2>&1
   if [ -f /appex/bin/serverSpeeder.sh ]; then
     bash /appex/bin/serverSpeeder.sh status
