@@ -4,15 +4,15 @@
 #
 # Modified by Aniverse
 
-script_update=2020.03.08
-script_version=r10011
+script_update=2020.04.23
+script_version=r10012
 
 usage_guide() {
-bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
-bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh) uninstall
-/appex/etc/apx.lic
-bash /appex/bin/lotServer.sh start
-bash /appex/bin/lotServer.sh status
+    bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
+  # bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh)  uninstall
+    /appex/etc/apx.lic
+    bash /appex/bin/lotServer.sh start
+    bash /appex/bin/lotServer.sh status
 }
 
 [[ $EUID -ne 0 ]] && { echo "ERROR: This script must be run as root!" ; exit 1 ; }
@@ -22,63 +22,64 @@ function pause() { echo ; read -p "Press Enter to Continue ..." INP ; }
 mkdir -p /tmp
 cd /tmp
 
-function dep_check()
-{
-  apt-get >/dev/null 2>&1
-  [ $? -le '1' ] && apt-get -y -qq install sed grep gawk ethtool ca-certificates >/dev/null 2>&1
-  yum >/dev/null 2>&1
-  [ $? -le '1' ] && yum -y -q install sed grep gawk ethtool >/dev/null 2>&1
+function dep_check() {
+    apt-get >/dev/null 2>&1
+    [ $? -le '1' ] && apt-get -y -qq install sed grep gawk ethtool ca-certificates >/dev/null 2>&1
+    yum >/dev/null 2>&1
+    [ $? -le '1' ] && yum -y -q install sed grep gawk ethtool >/dev/null 2>&1
 }
 
-function acce_check()
-{
-  local IFS='.'
-  read ver01 ver02 ver03 ver04 <<<"$1"
-  sum01=$[$ver01*2**32]
-  sum02=$[$ver02*2**16]
-  sum03=$[$ver03*2**8]
-  sum04=$[$ver04*2**0]
-  sum=$[$sum01+$sum02+$sum03+$sum04]
-  [ "$sum" -gt '12885627914' ] && echo "1" || echo "0"
+function acce_check() {
+    local IFS='.'
+    read ver01 ver02 ver03 ver04 <<<"$1"
+    sum01=$[$ver01*2**32]
+    sum02=$[$ver02*2**16]
+    sum03=$[$ver03*2**8]
+    sum04=$[$ver04*2**0]
+    sum=$[$sum01+$sum02+$sum03+$sum04]
+    [ "$sum" -gt '12885627914' ] && echo "1" || echo "0"
+}
+
+function generate_lic_local() {
+    which php > /dev/null || apt-get install -y php
+    which php > /dev/null || yum install -y php
+    which php > /dev/null || Uninstall "Error! No php found"
+    which git > /dev/null || apt-get install -y git
+    which php > /dev/null || yum install -y git
+    which git > /dev/null || Uninstall "Error! No git found"
+    git clone https://github.com/Tai7sy/LotServer_KeyGen
+    cd LotServer_KeyGen
+    git checkout b9f13eb
+    php keygen.php $Mac
+    mv out.lic ${AcceTmp}/etc/apx.lic
+    cd ..
+    rm -rf LotServer_KeyGen
 }
 
 function generate_lic() {
-acce_ver=$(acce_check ${KNV})
+    acce_ver=$(acce_check ${KNV})
 
-# [[ $(which php) ]] && Lic=local
-[[ -z $Lic ]] && Lic=c
-[[ $Lic == a ]] && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
-# https://github.com/MoeClub/lotServer/compare/master...wxlost:master
-[[ $Lic == b ]] && LicURL="https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
-# https://github.com/MoeClub/lotServer/compare/master...Jack8Li:master
-[[ $Lic == c ]] && LicURL="https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}"
-# https://github.com/MoeClub/lotServer/compare/master...ouyangmland:master
-[[ $Lic == d ]] && LicURL="http://speedsvip.eu5.org/keygen.php?mac=${Mac}"
-# https://github.com/jmireles7/lotServer/commit/dae9c4f781cf8ae01c9934320c05105071518627
-[[ $Lic == e ]] && LicURL="http://104.167.103.163/keygen.php?ver=${acce_ver}&mac=${Mac}"
-# https://github.com/luopos/lotServer/commit/c035cdf5db2e48281829749b8caddcf41fe7d995
-[[ $Lic == f ]] && LicURL="http://key.vps.bi/keygen.php?ver=${acce_ver}&mac=${Mac}"
-# https://github.com/liulanyinghuo/lotServer/commit/27f98562182d19bce5a32c1355f949b0f06e5d8c
-[[ $Lic == g ]] && LicURL="https://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
-[[ $Lic =~ (a|b|c|d|e|f|g) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
+    # [[ $(which php) ]] && Lic=local
+    [[ -z $Lic ]] && Lic=c
+    [[ $Lic == a ]] && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
+    # https://github.com/MoeClub/lotServer/compare/master...wxlost:master
+    [[ $Lic == b ]] && LicURL="https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
+    # https://github.com/MoeClub/lotServer/compare/master...Jack8Li:master
+    [[ $Lic == c ]] && LicURL="https://backup.rr5rr.com/LotServer/keygen.php?ver=${acce_ver}&mac=${Mac}"
+    # https://github.com/MoeClub/lotServer/compare/master...ouyangmland:master
+    [[ $Lic == d ]] && LicURL="http://speedsvip.eu5.org/keygen.php?mac=${Mac}"
+    # https://github.com/jmireles7/lotServer/commit/dae9c4f781cf8ae01c9934320c05105071518627
+    [[ $Lic == e ]] && LicURL="http://104.167.103.163/keygen.php?ver=${acce_ver}&mac=${Mac}"
+    # https://github.com/luopos/lotServer/commit/c035cdf5db2e48281829749b8caddcf41fe7d995
+    [[ $Lic == f ]] && LicURL="http://key.vps.bi/keygen.php?ver=${acce_ver}&mac=${Mac}"
+    # https://github.com/liulanyinghuo/lotServer/commit/27f98562182d19bce5a32c1355f949b0f06e5d8c
+    [[ $Lic == g ]] && LicURL="https://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
+    [[ $Lic =~ (a|b|c|d|e|f|g) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
+    [[ $Lic == local ]] && generate_lic_local
 
-[[ $Lic == local ]] && {
-which php > /dev/null || apt-get install -y php
-which php > /dev/null || yum install -y php
-which php > /dev/null || Uninstall "Error! No php found"
-which git > /dev/null || apt-get install -y git
-which php > /dev/null || yum install -y git
-which git > /dev/null || Uninstall "Error! No git found"
-git clone https://github.com/Tai7sy/LotServer_KeyGen
-cd LotServer_KeyGen
-git checkout b9f13eb
-php keygen.php $Mac
-mv out.lic ${AcceTmp}/etc/apx.lic
-cd ..
-rm -rf LotServer_KeyGen ; }
-
-[ "$(du -b ${AcceTmp}/etc/apx.lic |cut -f1)" -lt '152' ] && Uninstall "Error! I can not generate the Lic for you, Please try again later. "
-echo "Lic generate success! "
+    [ "$(du -b ${AcceTmp}/etc/apx.lic |cut -f1)" -lt '152' ] && generate_lic_local
+    [ "$(du -b ${AcceTmp}/etc/apx.lic |cut -f1)" -lt '152' ] && Uninstall "Error! I can not generate the Lic for you, Please try again later. "
+    echo "Lic generate success! "
 }
 
 function Install()
@@ -97,7 +98,7 @@ function Install()
   #EthConfig=$(ip route get 8.8.8.8 | awk '{print $5}')
   #[ -z "$Eth" ] && Uninstall "Error! Not found a valid ether. "
   #[ -z "$EthConfig" ] && Uninstall "Error! Not found a valid ether for config. "
-  
+
   [ -n "$(grep 'eth0:' /proc/net/dev)" ] && wangka1=eth0 || wangka1=`cat /proc/net/dev |awk -F: 'function trim(str){sub(/^[ \t]*/,"",str); sub(/[ \t]*$/,"",str); return str } NR>2 {print trim($1)}'  |grep -Ev '^lo|^sit|^stf|^gif|^dummy|^vmnet|^vir|^gre|^ipip|^ppp|^bond|^tun|^tap|^ip6gre|^ip6tnl|^teql|^venet|^he-ipv6|^docker' |awk 'NR==1 {print $0}'`
   wangka2=$(ip link show 2>1 | grep -i broadcast | grep -m1 UP  | cut -d: -f 2 | cut -d@ -f 1 | sed 's/ //g')
   if [[ -n $wangka2 ]]; then
@@ -171,16 +172,16 @@ function Uninstall()
 function UsageE() { echo -ne "Usage:\n     bash $0 [install |uninstall |install '{Kernel Version}']\n" ; }
 
 if [ $# == '1' ]; then
-  [ "$1" == 'install' ] && KNK="$(uname -r)" && Install && Usage=No
-  [ "$1" == 'uninstall' ] && Uninstall "Done." && Usage=No
-  [[ $Usage != No ]] && UsageE
+    [ "$1" == 'install' ] && KNK="$(uname -r)" && Install && Usage=No
+    [ "$1" == 'uninstall' ] && Uninstall "Done." && Usage=No
+    [[ $Usage != No ]] && UsageE
 elif [ $# == '2' ]; then
-  [ "$1" == 'install' ] && KNK="$2" && Install && Usage=No
-  [ "$1" == 'I' ] && Lic=$2 && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$(uname -r)" && Install && Usage=No
-  [[ $Usage != No ]] && UsageE
+    [ "$1" == 'install' ] && KNK="$2" && Install && Usage=No
+    [ "$1" == 'I' ] && Lic=$2 && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$(uname -r)" && Install && Usage=No
+    [[ $Usage != No ]] && UsageE
 elif [ $# == '3' ]; then
-  [ "$1" == 'I' ] && Lic=$3 && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$2" && Install && Usage=No
-  [[ $Usage != No ]] && UsageE
+    [ "$1" == 'I' ] && Lic=$3 && [[ $Lic =~ (a|b|c|d|e|f|g|local) ]] && KNK="$2" && Install && Usage=No
+    [[ $Usage != No ]] && UsageE
 else
-  UsageE
+    UsageE
 fi
