@@ -46,7 +46,7 @@ function generate_lic() {
 acce_ver=$(acce_check ${KNV})
 
 # [[ $(which php) ]] && Lic=local
-[[ -z $Lic ]] && Lic=a
+[[ -z $Lic ]] && Lic=c
 [[ $Lic == a ]] && LicURL="https://api.moeclub.org/lotServer?ver=${acce_ver}&mac=${Mac}" # https://moeclub.azurewebsites.net?ver=${acce_ver}&mac=${Mac}
 # https://github.com/MoeClub/lotServer/compare/master...wxlost:master
 [[ $Lic == b ]] && LicURL="https://118868.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
@@ -64,8 +64,10 @@ acce_ver=$(acce_check ${KNV})
 
 [[ $Lic == local ]] && {
 which php > /dev/null || apt-get install -y php
+which php > /dev/null || yum install -y php
 which php > /dev/null || Uninstall "Error! No php found"
 which git > /dev/null || apt-get install -y git
+which php > /dev/null || yum install -y git
 which git > /dev/null || Uninstall "Error! No git found"
 git clone https://github.com/Tai7sy/LotServer_KeyGen
 cd LotServer_KeyGen
@@ -76,7 +78,8 @@ cd ..
 rm -rf LotServer_KeyGen ; }
 
 [ "$(du -b ${AcceTmp}/etc/apx.lic |cut -f1)" -lt '152' ] && Uninstall "Error! I can not generate the Lic for you, Please try again later. "
-echo "Lic generate success! " ; }
+echo "Lic generate success! "
+}
 
 function Install()
 {
