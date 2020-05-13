@@ -4,11 +4,11 @@
 #
 # Modified by Aniverse
 
-script_update=2020.04.23
-script_version=r10012
+script_update=2020.05.14
+script_version=d0001
 
 usage_guide() {
-    bash <(wget --no-check-certificate -qO- https://github.com/zjsz007/lotServer/raw/master/lotServer.sh) install
+    bash <(wget --no-check-certificate -qO- https://github.com/zjsz007/lotServer/raw/master/Debian9.sh) install
   # bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh)  uninstall
     /appex/etc/apx.lic
     bash /appex/bin/lotServer.sh start
