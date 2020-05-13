@@ -8,7 +8,7 @@ script_update=2020.04.23
 script_version=r10012
 
 usage_guide() {
-    bash <(wget --no-check-certificate -qO- https://github.com/Aniverse/lotServer/raw/master/lotServer.sh) install
+    bash <(wget --no-check-certificate -qO- https://github.com/zjsz007/lotServer/raw/master/lotServer.sh) install
   # bash <(wget --no-check-certificate -qO- https://github.com/MoeClub/lotServer/raw/master/Install.sh)  uninstall
     /appex/etc/apx.lic
     bash /appex/bin/lotServer.sh start
@@ -74,7 +74,7 @@ function generate_lic() {
     [[ $Lic == f ]] && LicURL="http://key.vps.bi/keygen.php?ver=${acce_ver}&mac=${Mac}"
     # https://github.com/liulanyinghuo/lotServer/commit/27f98562182d19bce5a32c1355f949b0f06e5d8c
     [[ $Lic == g ]] && LicURL="https://020000.xyz/keygen.php?ver=${acce_ver}&mac=${Mac}"
-    [[ $Lic =~ (a|b|c|d|e|f|g) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
+    [[ $Lic =~ (d|e|f) ]] && wget -O "${AcceTmp}/etc/apx.lic" "$LicURL"
     [[ $Lic == local ]] && generate_lic_local
 
     [ "$(du -b ${AcceTmp}/etc/apx.lic |cut -f1)" -lt '152' ] && generate_lic_local
